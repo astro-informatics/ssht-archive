@@ -248,7 +248,7 @@ double ssht_sampling_mw_p2phi(int p, int L) {
  */
 int ssht_sampling_mw_n(int L) {
 
-  return (L-1)*(2*L-1) + 1;
+  return L*(2*L-1);
 
 }
 
