@@ -34,7 +34,7 @@ void gauleg(double x1, double x2, double *x, double *w, int n);
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-complex double ssht_sampling_weight_mw(int p) {
+_Complex double ssht_sampling_weight_mw(int p) {
 
   if (p == 1) {
     return I * SSHT_PION2;
@@ -248,7 +248,7 @@ double ssht_sampling_mw_p2phi(int p, int L) {
  */
 int ssht_sampling_mw_n(int L) {
 
-  return (L-1)*(2*L-1) + 1;
+  return L*(2*L-1);
 
 }
 
@@ -514,7 +514,7 @@ int ssht_sampling_gl_n(int L) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
+void ssht_sampling_elm2ind(int *ind, int el, int m) {
 
   *ind = el * el + el + m;
 
@@ -537,7 +537,7 @@ inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-inline void ssht_sampling_ind2elm(int *el, int *m, int ind) {
+void ssht_sampling_ind2elm(int *el, int *m, int ind) {
 
   *el = sqrt(ind);
   *m = ind - (*el)*(*el) - (*el);
