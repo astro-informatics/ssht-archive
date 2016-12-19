@@ -3,7 +3,7 @@
 // See LICENSE.txt for license details
 
 
-/*! 
+/*!
  * \file ssht_adjoint.c
  * Algorithms to perform fast adjoint of spin spherical harmonic
  * transforms on the sphere.
@@ -45,9 +45,9 @@
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym(complex double *flm, 
-				     complex double *f, 
-				     int L, int spin, 
+void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
+				     complex double *f,
+				     int L, int spin,
 				     ssht_dl_method_t dl_method,
 				     int verbosity) {
 
@@ -98,12 +98,12 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s%s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint inverse transform using MW sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s%s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym...");
   }
 
@@ -119,15 +119,15 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
   for (t=0; t<=L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
-    for(m=0; m<=L-1; m++) 
+    for(m=0; m<=L-1; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m];
-    for(m=-(L-1); m<=-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1]; 
+    for(m=-(L-1); m<=-1; m++)
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1];
   }
 
   // Apply adjoint of periodic entension.
-  for (m=-(L-1); m<=L-1; m++) 
-    for (t=L; t<=2*L-2; t++) 
+  for (m=-(L-1); m<=L-1; m++)
+    for (t=L; t<=2*L-2; t++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = 0.0;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
@@ -138,12 +138,12 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
   for (m=-(L-1); m<=L-1; m++) {
     memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-    for(mm=0; mm<=L-1; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
-	inout[mm]; 
-    for(mm=-(L-1); mm<=-1; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
-	inout[mm+2*L-1]; 
+    for(mm=0; mm<=L-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+	inout[mm];
+    for(mm=-(L-1); mm<=-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+	inout[mm+2*L-1];
   }
   fftw_destroy_plan(plan);
   free(inout);
@@ -162,7 +162,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);   
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
@@ -178,29 +178,29 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -217,26 +217,26 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=-el; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     elssign = spin <= 0 ? 1.0 : signs[el];
 
     for (m=-el; m<=-1; m++) {
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m + exps_offset]
 	* signs[el] * dl[0*dl_stride - m + dl_offset]
@@ -247,7 +247,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m + exps_offset]
 	* dl[0*dl_stride + m + dl_offset]
@@ -274,7 +274,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
 	flm[ind] +=
-	  ssign 
+	  ssign
 	  * elfactor
 	  * expsm[m + exps_offset]
 	  * dl[mm*dl_stride + m + dl_offset]
@@ -284,7 +284,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
 
-    }  
+    }
 
   }
 
@@ -301,13 +301,13 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
   free(inds);
 
   // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+  if (verbosity > 0)
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");
 
 }
 
 
-/*!  
+/*!
  * Compute adjoint of inverse transform for MW method of real scalar
  * signal using separation of variables, fast Fourier transforms and
  * exploiting all symmetries (including additional symmetries for real
@@ -322,10 +322,10 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm, 
-					  double *f, 
+void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
+					  double *f,
 					  int L,
-					  ssht_dl_method_t dl_method, 
+					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
   int el, m, mm, ind, ind_nm, t;
@@ -338,7 +338,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   double *in_real;
   complex double *inout, *out;
   complex double *Fmt, *Fmm;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
@@ -377,12 +377,12 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s%s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint inverse transform using MW sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s%s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_real...");
   }
 
@@ -390,7 +390,6 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   Fmt = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L-1;
-  Fmt_offset = L-1;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -400,7 +399,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   for (t=0; t<=L-1; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
         fftw_execute_dft_r2c(plan, in_real, out);
-    for(m=0; m<=L-1; m++) 
+    for(m=0; m<=L-1; m++)
       Fmt[m*Fmt_stride + t] = out[m];
   }
   free(in_real);
@@ -408,8 +407,8 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   fftw_destroy_plan(plan);
 
   // Apply adjoint of periodic extension.
-  for (m=0; m<=L-1; m++) 
-    for (t=L; t<=2*L-2; t++) 
+  for (m=0; m<=L-1; m++)
+    for (t=L; t<=2*L-2; t++)
       Fmt[m*Fmt_stride + t] = 0.0;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
@@ -423,12 +422,12 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   for (m=0; m<=L-1; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-    for(mm=0; mm<=L-1; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m] = 
-	inout[mm]; 
-    for(mm=-(L-1); mm<=-1; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m] = 
-	inout[mm+2*L-1]; 
+    for(mm=0; mm<=L-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m] =
+	inout[mm];
+    for(mm=-(L-1); mm<=-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m] =
+	inout[mm+2*L-1];
   }
   fftw_destroy_plan(plan);
   free(inout);
@@ -436,7 +435,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++)
     for (m=0; m<=L-1; m++)
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m] *= 
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m] *=
 	expsmm[mm + exps_offset];
 
   // Compute flm.
@@ -447,7 +446,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER); 
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = 0;
   for (el=0; el<=L-1; el++) {
     for (m=0; m<=el; m++) {
@@ -463,29 +462,29 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -502,27 +501,27 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=0; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     elssign = spin <= 0 ? 1.0 : signs[el];
 
     for (m=0; m<=el; m++) {
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m]
 	* dl[0*dl_stride + m + dl_offset]
@@ -537,7 +536,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
 	flm[ind] +=
-	  ssign 
+	  ssign
 	  * elfactor
 	  * expsm[m]
 	  * dl[mm*dl_stride + m + dl_offset]
@@ -547,7 +546,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m]);
       }
 
-    }  
+    }
 
   }
 
@@ -567,19 +566,19 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   free(Fmt);
   free(Fmm);
   free(sqrt_tbl);
-  free(signs); 
+  free(signs);
   free(expsm);
   free(expsmm);
   free(inds);
 
   // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+  if (verbosity > 0)
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");
 
 }
 
 
-/*!  
+/*!
  * Compute adjoint of forward transform for MW method using separation
  * of variables, fast Fourier transforms, performing convolution with
  * weights as product in transformed space and exploiting all
@@ -615,7 +614,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
   double elmmsign, elssign;
   int spinneg;
   complex double *Fmm;
-  int Fmm_offset, Fmm_stride; 
+  int Fmm_offset, Fmm_stride;
 
   fftw_plan plan, plan_bwd, plan_fwd;
   complex double *Ftm, *Gmm;
@@ -704,7 +703,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -885,8 +884,8 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
   // Adjoint of periodic extension of Ftm.
   for(t=0; t<=L-2; t++)
     for (m=-(L-1); m<=L-1; m++)
-      Ftm[t*Ftm_stride + m + Ftm_offset] = 
-	Ftm[t*Ftm_stride + m + Ftm_offset] 
+      Ftm[t*Ftm_stride + m + Ftm_offset] =
+	Ftm[t*Ftm_stride + m + Ftm_offset]
 	+ signs[abs(m)] * ssign * Ftm[(2*L-2-t)*Ftm_stride + m + Ftm_offset];
 
   // Compute Fourier transform over phi.
@@ -928,7 +927,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 }
 
 
-/*!  
+/*!
  * Compute adjoint of forward transform for MW method of real scalar
  * signal using separation of variables, fast Fourier transforms,
  * performing convolution with weights as product in transformed space
@@ -944,7 +943,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_real(double *f, 
+void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 					  complex double *flm,
 					  int L,
 					  ssht_dl_method_t dl_method,
@@ -1018,7 +1017,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   Fmm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
-  Fmm_stride = 2*L-1;    
+  Fmm_stride = 2*L-1;
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   if (dl_method == SSHT_DL_RISBO) {
@@ -1026,7 +1025,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);   
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
@@ -1036,29 +1035,29 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -1075,19 +1074,19 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=0; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     for (mm=0; mm<=el; mm++) {
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
@@ -1097,7 +1096,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
     	Fmm[m*Fmm_stride + mm + Fmm_offset] +=
     	  ssign
     	  * elfactor
-	  * exps[m + exps_offset]    	  
+	  * exps[m + exps_offset]
     	  * dl[mm*dl_stride + m + dl_offset]
     	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
     	  * flm[ind];
@@ -1113,10 +1112,10 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
     free(dl8);
 
   // Use symmetry to compute Fmm for negative mm.
-  for (m=0; m<=L-1; m++) 
-    for (mm=-(L-1); mm<=-1; mm++) 
-      Fmm[m*Fmm_stride + mm + Fmm_offset] = 
-	signs[abs(m)] * ssign 
+  for (m=0; m<=L-1; m++)
+    for (mm=-(L-1); mm<=-1; mm++)
+      Fmm[m*Fmm_stride + mm + Fmm_offset] =
+	signs[abs(m)] * ssign
 	* Fmm[m*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
@@ -1133,14 +1132,14 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  for (mm=1; mm<=2*L-2; mm++) 
+  for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
-  for (mm=-2*(L-1); mm<=0; mm++) 
+  for (mm=-2*(L-1); mm<=0; mm++)
     inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
   fftw_execute_dft(plan_bwd, inout, inout);
-  for (mm=0; mm<=2*L-2; mm++) 
+  for (mm=0; mm<=2*L-2; mm++)
     wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
-  for (mm=-2*(L-1); mm<=-1; mm++) 
+  for (mm=-2*(L-1); mm<=-1; mm++)
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
@@ -1159,7 +1158,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
     for (mm=L; mm<=2*(L-1); mm++)
       Fmm_pad[mm+w_offset] = 0.0;
     for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm_pad[mm + w_offset] = 
+      Fmm_pad[mm + w_offset] =
 	Fmm[m*Fmm_stride + mm + Fmm_offset];
 
     // Compute IFFT of Fmm.
@@ -1174,7 +1173,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
       Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
     // Compute product of Fmm and weight in real space.
-    for (r=-2*(L-1); r<=2*(L-1); r++) 
+    for (r=-2*(L-1); r<=2*(L-1); r++)
       Fmm_pad[r + w_offset] *= wr[-r + w_offset];
 
     // Compute Gmm by FFT.
@@ -1190,7 +1189,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 
     // Extract section of Gmm of interest.
     for (mm=-(L-1); mm<=L-1; mm++)
-      Gmm[m*Gmm_stride + mm + Fmm_offset] = 
+      Gmm[m*Gmm_stride + mm + Fmm_offset] =
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
@@ -1201,8 +1200,8 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++) {
     mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
-    for (m=0; m<=L-1; m++) 
-      Gmm[m*Gmm_stride + mm + Fmm_offset] *= 
+    for (m=0; m<=L-1; m++)
+      Gmm[m*Gmm_stride + mm + Fmm_offset] *=
 	mmfactor;
   }
 
@@ -1243,7 +1242,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   plan = fftw_plan_dft_c2r_1d(2*L-1, in, out_real, FFTW_MEASURE);
   f_stride = 2*L-1;
   for(t=0; t<=L-1; t++) {
-    
+
     memcpy(in, &Ftm[t*Ftm_stride], Ftm_stride*sizeof(complex double));
     fftw_execute_dft_c2r(plan, in, out_real);
 
@@ -1282,7 +1281,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 //============================================================================
 
 
-/*!  
+/*!
  * South pole wrapper for adjoint forward transform for MW method.
  * The South pole is defined by a single sample and its corresponding
  * phi angle, rather than specifying samples for all phi at the South
@@ -1291,7 +1290,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
  *
  * \param[out] f Function on sphere (excluding South pole).
  * \param[out] f_sp Function sample on South pole.
- * \param[out] phi_sp Phi angle corresponding to quoted sample at 
+ * \param[out] phi_sp Phi angle corresponding to quoted sample at
  * South pole.
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
@@ -1302,10 +1301,10 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_pole(complex double *f, 
+void ssht_adjoint_mw_forward_sov_sym_pole(complex double *f,
 					  complex double *f_sp, double *phi_sp,
-					  complex double *flm, 
-					  int L, int spin, 
+					  complex double *flm,
+					  int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
@@ -1317,21 +1316,21 @@ void ssht_adjoint_mw_forward_sov_sym_pole(complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_adjoint_mw_forward_sov_sym(f_full, flm, L, spin, 
-				  dl_method, verbosity);	  
+  ssht_adjoint_mw_forward_sov_sym(f_full, flm, L, spin,
+				  dl_method, verbosity);
 
   // Copy output function values, including separate point for South pole.
   memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(complex double));
   *f_sp = f_full[(L-1)*f_stride + 0];
   *phi_sp = ssht_sampling_mw_p2phi(0, L);
-	
+
   // Free memory.
   free(f_full);
 
 }
 
 
-/*!  
+/*!
  * South pole wrapper for adjoint forward transform of real scalar
  * function for MW method.  The South pole is defined by a single
  * sample, rather than specifying samples for all phi at the South
@@ -1348,11 +1347,11 @@ void ssht_adjoint_mw_forward_sov_sym_pole(complex double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f, 
+void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f,
 					       double *f_sp,
-					       complex double *flm, 
-					       int L, 
-					       ssht_dl_method_t dl_method, 
+					       complex double *flm,
+					       int L,
+					       ssht_dl_method_t dl_method,
 					       int verbosity) {
 
   double *f_full;
@@ -1363,7 +1362,7 @@ void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_adjoint_mw_forward_sov_sym_real(f_full, flm, L, 
+  ssht_adjoint_mw_forward_sov_sym_real(f_full, flm, L,
 				       dl_method, verbosity);
 
   // Copy output function values, including separate point for South pole.
@@ -1376,7 +1375,7 @@ void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f,
 }
 
 
-/*!  
+/*!
  * South pole wrapper for adjoint inverse transform for MW method.
  * The South pole is defined by a single sample and its corresponding
  * phi angle, rather than specifying samples for all phi at the South
@@ -1386,7 +1385,7 @@ void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f,
  * \param[out] flm Harmonic coefficients.
  * \param[in] f Function on sphere (excluding South pole).
  * \param[in] f_sp Function sample on South pole.
- * \param[in] phi_sp Phi angle corresponding to quoted sample at 
+ * \param[in] phi_sp Phi angle corresponding to quoted sample at
  * South pole.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
@@ -1398,7 +1397,7 @@ void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f,
  */
 void ssht_adjoint_mw_inverse_sov_sym_pole(complex double *flm, complex double *f,
 					  complex double f_sp, double phi_sp,
-					  int L, int spin, 
+					  int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
@@ -1414,11 +1413,11 @@ void ssht_adjoint_mw_inverse_sov_sym_pole(complex double *flm, complex double *f
   // Define South pole for all phi.
   for (p=0; p<=2*L-2; p++) {
     phi = ssht_sampling_mw_p2phi(p, L);
-    f_full[(L-1)*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
+    f_full[(L-1)*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp));
   }
 
   // Perform forward transform.
-  ssht_adjoint_mw_inverse_sov_sym(flm, f_full, L, spin, 
+  ssht_adjoint_mw_inverse_sov_sym(flm, f_full, L, spin,
 				  dl_method, verbosity);
 
   // Free memory.
@@ -1427,7 +1426,7 @@ void ssht_adjoint_mw_inverse_sov_sym_pole(complex double *flm, complex double *f
 }
 
 
-/*!  
+/*!
  * South pole wrapper for adjoint inverse transform of real scalar
  * function for MW method.  The South pole is defined by a single
  * sample, rather than specifying samples for all phi at the South
@@ -1444,10 +1443,10 @@ void ssht_adjoint_mw_inverse_sov_sym_pole(complex double *flm, complex double *f
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm, 
-					       double *f, 
+void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm,
+					       double *f,
 					       double f_sp,
-					       int L, 
+					       int L,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
 
@@ -1461,10 +1460,10 @@ void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm,
 
   // Define South pole for all phi.
   for (p=0; p<=2*L-2; p++)
-    f_full[(L-1)*f_stride + p] = f_sp; 
+    f_full[(L-1)*f_stride + p] = f_sp;
 
   // Perform forward transform.
-  ssht_adjoint_mw_inverse_sov_sym_real(flm, f_full, L, 
+  ssht_adjoint_mw_inverse_sov_sym_real(flm, f_full, L,
 				       dl_method, verbosity);
 
   // Free memory.
@@ -1478,7 +1477,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm,
 //============================================================================
 
 
-/*!  
+/*!
  * Compute adjoint of inverse transform for MW method with symmetric
  * sampling using separation of variables, fast Fourier transforms and
  * exploiting all symmetries (for complex spin signal).
@@ -1493,8 +1492,8 @@ void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f, 
-					int L, int spin, 
+void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
+					int L, int spin,
 					ssht_dl_method_t dl_method,
 					int verbosity) {
 
@@ -1545,12 +1544,12 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s%s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint inverse transform using MW symmetric sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s%s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_ss...");
   }
 
@@ -1568,17 +1567,17 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
   for (t=0; t<=L; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
-    for(m=0; m<=L; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m]; 
-    for(m=-(L-1); m<=-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1+1]; 
+    for(m=0; m<=L; m++)
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m];
+    for(m=-(L-1); m<=-1; m++)
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1+1];
   }
   fftw_destroy_plan(plan);
   free(inout);
 
   // Apply adjoint of periodic extension.
-  for (m=-(L-1); m<=L; m++) 
-    for (t=L+1; t<=2*L-1; t++) 
+  for (m=-(L-1); m<=L; m++)
+    for (t=L+1; t<=2*L-1; t++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = 0.0;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
@@ -1593,12 +1592,12 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
   for (m=-(L-1); m<=L; m++) {
     memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-    for(mm=0; mm<=L; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
-	inout[mm]; 
-    for(mm=-(L-1); mm<=-1; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
-	inout[mm+2*L-1+1]; 
+    for(mm=0; mm<=L; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+	inout[mm];
+    for(mm=-(L-1); mm<=-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+	inout[mm+2*L-1+1];
   }
   fftw_destroy_plan(plan);
   free(inout);
@@ -1611,7 +1610,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER); 
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
@@ -1627,29 +1626,29 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -1666,26 +1665,26 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=-el; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     elssign = spin <= 0 ? 1.0 : signs[el];
 
     for (m=-el; m<=-1; m++) {
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m + exps_offset]
 	* signs[el] * dl[0*dl_stride - m + dl_offset]
@@ -1696,7 +1695,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m + exps_offset]
 	* dl[0*dl_stride + m + dl_offset]
@@ -1723,7 +1722,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
 	flm[ind] +=
-	  ssign 
+	  ssign
 	  * elfactor
 	  * expsm[m + exps_offset]
 	  * dl[mm*dl_stride + m + dl_offset]
@@ -1733,7 +1732,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
 	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
 
-    }  
+    }
 
   }
 
@@ -1744,19 +1743,19 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
   free(Fmt);
   free(Fmm);
   free(sqrt_tbl);
-  free(signs); 
+  free(signs);
   free(expsm);
   free(expsmm);
   free(inds);
 
   // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+  if (verbosity > 0)
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");
 
 }
 
 
-/*!  
+/*!
  * Compute adjoint of inverse transform for MW method with symmetric
  * sampling of real scalar signal using separation of variables, fast
  * Fourier transforms and exploiting all symmetries (including
@@ -1771,9 +1770,9 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f, 
-					     int L, 
-					     ssht_dl_method_t dl_method, 
+void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
+					     int L,
+					     ssht_dl_method_t dl_method,
 					     int verbosity) {
 
   int el, m, mm, ind, ind_nm, t;
@@ -1786,12 +1785,11 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   double *in_real;
   complex double *inout, *out;
   complex double *Fmt, *Fmm;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   complex double *expsm;
-  int exps_offset;
   int elmmsign, elssign;
   int spinneg;
   int spin = 0;
@@ -1815,18 +1813,17 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   }
   ssign = signs[abs(spin)];
   spinneg = spin <= 0 ? spin : -spin;
-  exps_offset = L-1;
   for (m=0; m<=L-1; m++)
     expsm[m] = cexp(I*SSHT_PION2*(m+spin));
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s%s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint inverse transform using MW symmetric sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s%s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_ss_real...");
   }
 
@@ -1836,7 +1833,6 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
-  Fmt_offset = L-1;
   f_stride = 2*L;
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -1846,16 +1842,16 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   for (t=0; t<=L; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
         fftw_execute_dft_r2c(plan, in_real, out);
-    for(m=0; m<=L; m++) 
-      Fmt[m*Fmt_stride + t] = out[m]; 
+    for(m=0; m<=L; m++)
+      Fmt[m*Fmt_stride + t] = out[m];
   }
   free(in_real);
   free(out);
   fftw_destroy_plan(plan);
 
   // Apply adjoint of periodic extension.
-  for (m=0; m<=L; m++) 
-    for (t=L+1; t<=2*L-1; t++) 
+  for (m=0; m<=L; m++)
+    for (t=L+1; t<=2*L-1; t++)
       Fmt[m*Fmt_stride + t] = 0.0;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
@@ -1870,12 +1866,12 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   for (m=0; m<=L; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-    for(mm=0; mm<=L; mm++) 
-      Fmm[(mm+Fmm_offset)*Fmm_stride + m] = 
-	inout[mm]; 
-    for(mm=-(L-1); mm<=-1; mm++) 
+    for(mm=0; mm<=L; mm++)
       Fmm[(mm+Fmm_offset)*Fmm_stride + m] =
-	inout[mm+2*L-1+1]; 
+	inout[mm];
+    for(mm=-(L-1); mm<=-1; mm++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m] =
+	inout[mm+2*L-1+1];
   }
   fftw_destroy_plan(plan);
   free(inout);
@@ -1888,7 +1884,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER); 
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = 0;
   for (el=0; el<=L-1; el++) {
     for (m=0; m<=el; m++) {
@@ -1904,29 +1900,29 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -1943,26 +1939,26 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=0; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     elssign = spin <= 0 ? 1.0 : signs[el];
 
     for (m=0; m<=el; m++) {
       // mm = 0
       ind = inds[m + inds_offset];
       flm[ind] +=
-	ssign 
+	ssign
 	* elfactor
 	* expsm[m]
 	* dl[0*dl_stride + m + dl_offset]
@@ -1977,7 +1973,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
 	flm[ind] +=
-	  ssign 
+	  ssign
 	  * elfactor
 	  * expsm[m]
 	  * dl[mm*dl_stride + m + dl_offset]
@@ -1987,7 +1983,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m]);
       }
 
-    }  
+    }
 
   }
 
@@ -2007,18 +2003,18 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   free(Fmt);
   free(Fmm);
   free(sqrt_tbl);
-  free(signs); 
+  free(signs);
   free(expsm);
   free(inds);
 
   // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+  if (verbosity > 0)
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");
 
 }
 
 
-/*!  
+/*!
  * Compute adjoint of forward transform for MW method with symmetric
  * sampling using separation of variables, fast Fourier transforms,
  * performing convolution with weights as product in transformed space
@@ -2144,7 +2140,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -2319,8 +2315,8 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
   // Adjoint of periodic extension of Ftm.
   for(t=1; t<=L-1; t++)
     for (m=-(L-1); m<=L; m++)
-      Ftm[t*Ftm_stride + m + Ftm_offset] = 
-	Ftm[t*Ftm_stride + m + Ftm_offset] 
+      Ftm[t*Ftm_stride + m + Ftm_offset] =
+	Ftm[t*Ftm_stride + m + Ftm_offset]
 	+ signs[abs(m)] * ssign * Ftm[(2*L-t)*Ftm_stride + m + Ftm_offset];
 
   // Compute Fourier transform over phi.
@@ -2362,7 +2358,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 }
 
 
-/*!  
+/*!
  * Compute adjoint of forward transform for MW method with symmetric
  * sampling of real scalar signal using separation of variables, fast
  * Fourier transforms, performing convolution with weights as product
@@ -2378,7 +2374,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f, 
+void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 					     complex double *flm,
 					     int L,
 					     ssht_dl_method_t dl_method,
@@ -2451,7 +2447,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
   Fmm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
-  Fmm_stride = 2*L-1;    
+  Fmm_stride = 2*L-1;
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   if (dl_method == SSHT_DL_RISBO) {
@@ -2459,7 +2455,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
     SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);   
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
@@ -2469,29 +2465,29 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
       case SSHT_DL_RISBO:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					    SSHT_DL_QUARTER_EXTENDED,
 					    eltmp, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	else {
-	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
 					  SSHT_DL_QUARTER_EXTENDED,
 					  el, sqrt_tbl, signs);
-	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
 						       dl8, L,
 						       SSHT_DL_QUARTER,
 						       SSHT_DL_QUARTER_EXTENDED,
-						       el, 
+						       el,
 						       signs);
 	}
 	break;
-  
+
       case SSHT_DL_TRAPANI:
 	if (el!=0 && el==abs(spin)) {
 	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
@@ -2508,19 +2504,19 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 					      el, sqrt_tbl);
 	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
 							   SSHT_DL_QUARTER,
-							   el, signs);	
+							   el, signs);
 	}
 	break;
 
       default:
-	SSHT_ERROR_GENERIC("Invalid dl method") 
+	SSHT_ERROR_GENERIC("Invalid dl method")
     }
 
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;    
+    el2pel = el *el + el;
     for (m=0; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m; 
+      inds[m + inds_offset] = el2pel + m;
     for (mm=0; mm<=el; mm++) {
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
@@ -2530,7 +2526,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
     	Fmm[m*Fmm_stride + mm + Fmm_offset] +=
     	  ssign
     	  * elfactor
-	  * exps[m + exps_offset]    	  
+	  * exps[m + exps_offset]
     	  * dl[mm*dl_stride + m + dl_offset]
     	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
     	  * flm[ind];
@@ -2546,10 +2542,10 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
     free(dl8);
 
   // Use symmetry to compute Fmm for negative mm.
-  for (m=0; m<=L-1; m++) 
-    for (mm=-(L-1); mm<=-1; mm++) 
-      Fmm[m*Fmm_stride + mm + Fmm_offset] =      
-	signs[abs(m)] * ssign 
+  for (m=0; m<=L-1; m++)
+    for (mm=-(L-1); mm<=-1; mm++)
+      Fmm[m*Fmm_stride + mm + Fmm_offset] =
+	signs[abs(m)] * ssign
 	* Fmm[m*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
@@ -2566,14 +2562,14 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  for (mm=1; mm<=2*L-2; mm++) 
+  for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
-  for (mm=-2*(L-1); mm<=0; mm++) 
+  for (mm=-2*(L-1); mm<=0; mm++)
     inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
   fftw_execute_dft(plan_bwd, inout, inout);
-  for (mm=0; mm<=2*L-2; mm++) 
+  for (mm=0; mm<=2*L-2; mm++)
     wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
-  for (mm=-2*(L-1); mm<=-1; mm++) 
+  for (mm=-2*(L-1); mm<=-1; mm++)
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
@@ -2593,7 +2589,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
     for (mm=L; mm<=2*(L-1); mm++)
       Fmm_pad[mm+w_offset] = 0.0;
     for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm_pad[mm + w_offset] = 
+      Fmm_pad[mm + w_offset] =
 	Fmm[m*Fmm_stride + mm + Fmm_offset];
 
     // Compute IFFT of Fmm.
@@ -2608,7 +2604,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
       Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
     // Compute product of Fmm and weight in real space.
-    for (r=-2*(L-1); r<=2*(L-1); r++) 
+    for (r=-2*(L-1); r<=2*(L-1); r++)
       Fmm_pad[r + w_offset] *= wr[-r + w_offset];
 
     // Compute Gmm by FFT.
@@ -2624,14 +2620,14 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 
     // Extract section of Gmm of interest.
     for (mm=-(L-1); mm<=L-1; mm++)
-      Gmm[m*Gmm_stride + mm + Gmm_offset] = 
+      Gmm[m*Gmm_stride + mm + Gmm_offset] =
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
   fftw_destroy_plan(plan_bwd);
   fftw_destroy_plan(plan_fwd);
   free(inout);
-  
+
   // Compute Fourier transform over theta.
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -2669,7 +2665,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
   plan = fftw_plan_dft_c2r_1d(2*L, in, out_real, FFTW_MEASURE);
   f_stride = 2*L;
   for(t=0; t<=L; t++) {
-    
+
     memcpy(in, &Ftm[t*Ftm_stride], Ftm_stride*sizeof(complex double));
     fftw_execute_dft_c2r(plan, in, out_real);
 
@@ -2708,7 +2704,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 //============================================================================
 
 
-/*!  
+/*!
  * North-South pole wrapper for adjoint forward transform for MW
  * method with symmetric sampling.  The poles are defined by single
  * samples and their corresponding phi angle, rather than specifying
@@ -2717,10 +2713,10 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
  *
  * \param[out] f Function on sphere (excluding poles).
  * \param[out] f_np Function sample on North pole.
- * \param[out] phi_np Phi angle corresponding to quoted sample at 
+ * \param[out] phi_np Phi angle corresponding to quoted sample at
  * North pole.
  * \param[out] f_sp Function sample on South pole.
- * \param[out] phi_sp Phi angle corresponding to quoted sample at 
+ * \param[out] phi_sp Phi angle corresponding to quoted sample at
  * South pole.
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
@@ -2731,11 +2727,11 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_ss_pole(complex double *f, 
+void ssht_adjoint_mw_forward_sov_sym_ss_pole(complex double *f,
 					     complex double *f_np, double *phi_np,
 					     complex double *f_sp, double *phi_sp,
-					     complex double *flm, 
-					     int L, int spin, 
+					     complex double *flm,
+					     int L, int spin,
 					     ssht_dl_method_t dl_method,
 					     int verbosity) {
 
@@ -2747,25 +2743,25 @@ void ssht_adjoint_mw_forward_sov_sym_ss_pole(complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_adjoint_mw_forward_sov_sym_ss(f_full, flm, L, spin, 
-				     dl_method, verbosity);	  
+  ssht_adjoint_mw_forward_sov_sym_ss(f_full, flm, L, spin,
+				     dl_method, verbosity);
 
   // Copy output function values, including separate points for  poles.
  for (t=1; t<=L-1; t++)
-   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
+   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride],
 	  (2*L)*sizeof(complex double));
   *f_np = f_full[0];
   *phi_np = ssht_sampling_mw_ss_p2phi(0, L);
   *f_sp = f_full[L*f_stride + 0];
   *phi_sp = ssht_sampling_mw_ss_p2phi(0, L);
-	
+
   // Free memory.
   free(f_full);
 
 }
 
 
-/*!  
+/*!
  * North-South pole wrapper for adjoint forward transform of real
  * scalar function for MW method with symmetric sampling.  The poles
  * are defined by single samples, rather than specifying samples for
@@ -2783,11 +2779,11 @@ void ssht_adjoint_mw_forward_sov_sym_ss_pole(complex double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f, 
+void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
 						  double *f_np,
 						  double *f_sp,
-						  complex double *flm, 
-						  int L, 
+						  complex double *flm,
+						  int L,
 						  ssht_dl_method_t dl_method,
 						  int verbosity) {
 
@@ -2799,12 +2795,12 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_adjoint_mw_forward_sov_sym_ss_real(f_full, flm, L, 
+  ssht_adjoint_mw_forward_sov_sym_ss_real(f_full, flm, L,
 					  dl_method, verbosity);
 
   // Copy output function values, including separate points for  poles.
   for (t=1; t<=L-1; t++)
-   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
+   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride],
 	  (2*L)*sizeof(double));
   *f_np = f_full[0];
   *f_sp = f_full[L*f_stride + 0];
@@ -2815,7 +2811,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
 }
 
 
-/*!  
+/*!
  * North-South pole wrapper for adjoint inverse transform for MW
  * method with symmetric sampling.  The poles are defined by single
  * samples and their corresponding phi angle, rather than specifying
@@ -2825,10 +2821,10 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
  * \param[out] flm Harmonic coefficients.
  * \param[in] f Function on sphere (excluding poles).
  * \param[in] f_np Function sample on North pole.
- * \param[in] phi_np Phi angle corresponding to quoted sample at 
+ * \param[in] phi_np Phi angle corresponding to quoted sample at
  * North pole.
  * \param[in] f_sp Function sample on South pole.
- * \param[in] phi_sp Phi angle corresponding to quoted sample at 
+ * \param[in] phi_sp Phi angle corresponding to quoted sample at
  * South pole.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
@@ -2841,7 +2837,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
 void ssht_adjoint_mw_inverse_sov_sym_ss_pole(complex double *flm, complex double *f,
 					     complex double f_np, double phi_np,
 					     complex double f_sp, double phi_sp,
-					     int L, int spin, 
+					     int L, int spin,
 					     ssht_dl_method_t dl_method,
 					     int verbosity) {
 
@@ -2853,18 +2849,18 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_pole(complex double *flm, complex double
   f_full = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
   for (t=1; t<=L-1; t++)
-    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride], 
+    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride],
 	   (2*L)*sizeof(complex double));
 
   // Define poles for all phi.
   for (p=0; p<=2*L-1; p++) {
     phi = ssht_sampling_mw_ss_p2phi(p, L);
-    f_full[0*f_stride + p] = f_np * cexp(-I*spin*(phi-phi_np)); 
-    f_full[L*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
+    f_full[0*f_stride + p] = f_np * cexp(-I*spin*(phi-phi_np));
+    f_full[L*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp));
   }
 
   // Perform forward transform.
-  ssht_adjoint_mw_inverse_sov_sym_ss(flm, f_full, L, spin, 
+  ssht_adjoint_mw_inverse_sov_sym_ss(flm, f_full, L, spin,
 				     dl_method, verbosity);
 
   // Free memory.
@@ -2873,7 +2869,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_pole(complex double *flm, complex double
 }
 
 
-/*!  
+/*!
  * North-South pole wrapper for adjoint inverse transform of real
  * scalar function for MW method with symmetric sampling.  The poles
  * are defined by single samples, rather than specifying samples for
@@ -2891,11 +2887,11 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_pole(complex double *flm, complex double
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_adjoint_mw_inverse_sov_sym_ss_real_pole(complex double *flm, 
-						  double *f, 
+void ssht_adjoint_mw_inverse_sov_sym_ss_real_pole(complex double *flm,
+						  double *f,
 						  double f_np,
 						  double f_sp,
-						  int L, 
+						  int L,
 						  ssht_dl_method_t dl_method,
 						  int verbosity) {
 
@@ -2906,17 +2902,17 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real_pole(complex double *flm,
   f_full = (double*)calloc((L+1)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
   for (t=1; t<=L-1; t++)
-    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride], 
+    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride],
 	   (2*L)*sizeof(double));
 
   // Define poles for all phi.
   for (p=0; p<=2*L-1; p++) {
-    f_full[0*f_stride + p] = f_np; 
-    f_full[L*f_stride + p] = f_sp; 
+    f_full[0*f_stride + p] = f_np;
+    f_full[L*f_stride + p] = f_sp;
   }
 
   // Perform forward transform.
-  ssht_adjoint_mw_inverse_sov_sym_ss_real(flm, f_full, L, 
+  ssht_adjoint_mw_inverse_sov_sym_ss_real(flm, f_full, L,
 					  dl_method, verbosity);
 
   // Free memory.

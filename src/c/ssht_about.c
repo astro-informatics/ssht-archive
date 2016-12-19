@@ -2,10 +2,10 @@
 // Copyright (C) 2011  Jason McEwen
 // See LICENSE.txt for license details
 
-/*! 
+/*!
  * \file ssht_about.c
  * Print information about the SSHT package, including version
- * and build numbers. 
+ * and build numbers.
  *
  * Usage: ssht_about
  *
@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 
-int main(int argc, char *argv[]) {
+int main(void) {
 
   printf("%s\n", "==========================================================");
   printf("%s\n", "SSHT package to perform spin spherical harmonic transforms");
