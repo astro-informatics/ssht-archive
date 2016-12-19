@@ -2,7 +2,7 @@
 // Copyright (C) 2011  Jason McEwen
 // See LICENSE.txt for license details
 
-/*! 
+/*!
  * \file ssht_sampling.c
  * Functionality to define sample positions for various algorithms,
  * to compute weights and to convert 1D and 2D harmonic indices.
@@ -14,6 +14,7 @@
 #include <complex.h>
 #include <math.h>
 #include "ssht_types.h"
+#include "ssht_sampling.h"
 
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 
@@ -48,9 +49,9 @@ complex double ssht_sampling_weight_mw(int p) {
   else {
     return 0.0;
   }
-  
+
 }
-  
+
 
 /*!
  * Compute Driscoll and Healy weights.
@@ -92,7 +93,7 @@ double ssht_sampling_weight_dh(double theta_t, int L) {
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L) {
-   
+
   int t;
   double tmp;
 
@@ -166,7 +167,7 @@ void gauleg(double x1, double x2, double *x, double *w, int n) {
 
 /*!
  * Compute number of theta samples for McEwen and Wiaux sampling.
- * 
+ *
  * /note Computes number of samples in (0,pi], *not* over extended
  * domain.
  *
@@ -237,7 +238,7 @@ double ssht_sampling_mw_p2phi(int p, int L) {
 
 /*!
  * Compute total number of samples for McEwen and Wiaux sampling.
- * 
+ *
  * /note Computes number of samples on sphere, *not* over extended
  * domain.
  *
@@ -276,7 +277,7 @@ double ssht_sampling_mw_ss_t2theta(int t, int L) {
 /*!
  * Compute number of theta samples for McEwen and Wiaux symmetric
  * sampling.
- * 
+ *
  * /note Computes number of samples in [0,pi], *not* over extended
  * domain.
  *
@@ -330,7 +331,7 @@ int ssht_sampling_mw_ss_nphi(int L) {
 /*!
  * Compute total number of samples for McEwen and Wiaux symmetric
  * sampling.
- * 
+ *
  * /note Computes number of samples on sphere, *not* over extended
  * domain.
  *
@@ -416,7 +417,7 @@ int ssht_sampling_dh_nphi(int L) {
 
 /*!
  * Compute total number of samples for Driscoll and Healy sampling.
- * 
+ *
  * \param[in] L Harmonic band-limit.
  * \retval n Number of samples.
  *
@@ -491,57 +492,3 @@ int ssht_sampling_gl_n(int L) {
   return L*(2*L-1);
 
 }
-
-
-//============================================================================
-// Harmonic index relations
-//============================================================================
-
-
-/*!
- * Convert (el,m) harmonic indices to 1D index used to access flm
- * array.
- *
- * \note Index ranges are as follows:  
- *  - el ranges from [0 .. L-1].
- *  - m ranges from [-el .. el].
- *  - ind ranges from [0 .. L**2-1].
- *
- * \param[out] ind 1D index to access flm array [output].
- * \param[in]  el  Harmonic index [input].
- * \param[in]  m   Azimuthal harmonic index [input].
- * \retval none
- *
- * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
- */
-inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
-
-  *ind = el * el + el + m;
-
-}
-
-
-/*!
- * Convert 1D index used to access flm array to (el,m) harmonic
- * indices.
- *
- * \note Index ranges are as follows:  
- *  - el ranges from [0 .. L-1].
- *  - m ranges from [-el .. el].
- *  - ind ranges from [0 .. L**2-1].
- *
- * \param[in]  ind 1D index to access flm array [output].
- * \param[out] el  Harmonic index [input].
- * \param[out] m   Azimuthal harmonic index [input].
- * \retval none
- *
- * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
- */
-inline void ssht_sampling_ind2elm(int *el, int *m, int ind) {
-
-  *el = sqrt(ind);
-  *m = ind - (*el)*(*el) - (*el);
-
-}
-
-     
