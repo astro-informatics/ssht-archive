@@ -25,6 +25,15 @@
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#ifdef USE_LIBSHARP
+typedef complex double dcmplx;
+#include "c_utils.h"
+#include "sharp.h"
+#include "sharp_geomhelpers.h"
+#include "ssht_sharp_utils.h"
+int ssht_use_libsharp_fwd=0;
+int ssht_use_libsharp_inv=0;
+#endif
 
 //============================================================================
 // MW algorithms
@@ -78,8 +87,26 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
           int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (use_libsharp_inverse)
+  if (ssht_use_libsharp_inv)
     {
+    // describe the grid to libsharp
+    sharp_geom_info *tinfo;
+    sharp_make_mw_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+    double * fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    // create temporary storage for a_lm
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_c (flm, L0, L, spin, &alm, &alms);
+    // run the SHT proper
+    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    //cleanup
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
     }
 #endif
   int el, m, mm;
@@ -353,6 +380,25 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    // describe the grid to libsharp
+    sharp_geom_info *tinfo;
+    sharp_make_mw_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+    // create temporary storage for a_lm
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_r (flm, L0, L, &alm, &alms);
+    // run the SHT proper
+    sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    // cleanup
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int el, m, mm;
   //int t, p;
   int eltmp;
@@ -840,6 +886,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    ssht_sharp_mw_forward_complex(flm, f, L0, L, spin);
+    return;
+    }
+#endif
   int el, m, mm, ind, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -1233,6 +1286,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
 					    ssht_dl_method_t dl_method,
 					    int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    ssht_sharp_mw_forward_real(flm, f, L0, L);
+    return;
+    }
+#endif
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -1827,6 +1887,25 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, const complex double 
 				     ssht_dl_method_t dl_method,
 				     int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_cc_geom_info (L+1, 2*L, 0., 2, 4*L, &tinfo);
+    double * fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_c (flm, L0, L, spin, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int el, m, mm, ind;
   //int t, p;
   int eltmp;
@@ -2098,6 +2177,21 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *fl
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_cc_geom_info (L+1, 2*L, 0., 1, 2*L, &tinfo);
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_r (flm, L0, L, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int el, m, mm, ind;
   //int t, p;
   int eltmp;
@@ -2455,6 +2549,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    ssht_sharp_mws_forward_complex(flm, f, L0, L, spin);
+    return;
+    }
+#endif
   int el, m, mm, ind, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -2850,6 +2951,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    ssht_sharp_mws_forward_real(flm, f, L0, L);
+    return;
+    }
+#endif
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -3421,6 +3529,25 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
 void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+    double * fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_c (flm, 0, L, spin, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, p, m, el, ind;
   int ftm_stride, ftm_offset, f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -3552,6 +3679,21 @@ void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
 void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_r (flm, 0, L, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, p, m, el, ind;
   int ftm_stride, ftm_offset, f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -3685,6 +3827,27 @@ void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
 void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+    double * fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    sharp_alm_info *alms;
+    sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+    dcmplx **alm;
+    ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
+    sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    ssht_alm2flm_c (flm,0,L,spin,alm,alms);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, m, el, ind;
   int f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -3832,6 +3995,23 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
 void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+    sharp_alm_info *alms;
+    sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+    dcmplx **alm;
+    ALLOC2D(alm,dcmplx,1,(L*(L+1))/2);
+    sharp_execute(SHARP_MAP2ALM,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    ssht_alm2flm_r(flm,0,L,alm,alms);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, m, el, ind, ind_nm;
   int f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -3996,6 +4176,25 @@ void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
 void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+    double *fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_c (flm, 0, L, spin, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, p, m, el, ind;
   int ftm_stride, ftm_offset, f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -4115,6 +4314,21 @@ void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
 void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_inv)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+    sharp_alm_info *alms;
+    dcmplx **alm;
+    ssht_flm2alm_r (flm, 0, L, &alm, &alms);
+    sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, p, m, el, ind;
   int ftm_stride, ftm_offset, f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -4236,6 +4450,27 @@ void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
 void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+    double * fr=(double *)f;
+    double *frp[2];
+    frp[0]=fr;
+    frp[1]=fr+1;
+    sharp_alm_info *alms;
+    sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+    dcmplx **alm;
+    ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
+    sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    ssht_alm2flm_c(flm,0,L,spin,alm,alms);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, m, el, ind;
   int f_stride;
   double *dlm1p1_line,  *dl_line;
@@ -4373,6 +4608,23 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
 void ssht_core_dh_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (ssht_use_libsharp_fwd)
+    {
+    sharp_geom_info *tinfo;
+    sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+    sharp_alm_info *alms;
+    sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+    dcmplx **alm;
+    ALLOC2D(alm,dcmplx,1,(L*(L+1))/2);
+    sharp_execute(SHARP_MAP2ALM,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+    ssht_alm2flm_r(flm,0,L,alm,alms);
+    DEALLOC2D(alm);
+    sharp_destroy_alm_info(alms);
+    sharp_destroy_geom_info(tinfo);
+    return;
+    }
+#endif
   int t, m, el, ind, ind_nm;
   int f_stride;
   double *dlm1p1_line,  *dl_line;
