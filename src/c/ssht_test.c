@@ -716,11 +716,11 @@ int main(int argc, char *argv[]) {
     printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
     printf("MW SS real\n");
-    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_lb_ss_real[i];
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss_real[i];
     printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
-    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_lb_ss_real[i];
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss_real[i];
     printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
-    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_lb_ss_real[i];
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss_real[i];
     printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
     printf("MW SS real with lower band-limit\n");
