@@ -77,6 +77,11 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
           ssht_dl_method_t dl_method,
           int verbosity) {
 
+#ifdef USE_LIBSHARP
+  if (use_libsharp_inverse)
+    {
+    }
+#endif
   int el, m, mm;
   //int t, p;
   int eltmp;

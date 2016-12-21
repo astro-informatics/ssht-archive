@@ -110,6 +110,15 @@ SSHTOBJSMEX = $(SSHTOBJMEX)/ssht_sampling_mex.$(MEXEXT)        \
               $(SSHTOBJMEX)/ssht_forward_adjoint_mex.$(MEXEXT) \
               $(SSHTOBJMEX)/ssht_inverse_adjoint_mex.$(MEXEXT)
 
+USE_LIBSHARP=yes
+SHARP_INCDIR=/afs/mpa/data/martin/lsnew/linux_gcc/include
+SHARP_LIBDIR=/afs/mpa/data/martin/lsnew/linux_gcc/lib
+ifeq ($(USE_LIBSHARP),yes)
+OPT+= -I $(SHARP_INCDIR) -DUSE_LIBSHARP
+LDFLAGS+= -L $(SHARP_LIBDIR) -lsharp -lfftpack -lc_utils
+SSHTOBJS+= $(SSHTOBJ)/ssht_sharp_utils.o
+SSHTHEADERS+= ssht_sharp_utils.h
+endif
 
 # ======== MAKE RULES ========
 
