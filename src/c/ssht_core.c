@@ -31,8 +31,8 @@ typedef complex double dcmplx;
 #include "sharp.h"
 #include "sharp_geomhelpers.h"
 #include "ssht_sharp_utils.h"
-int ssht_use_libsharp_fwd=0;
-int ssht_use_libsharp_inv=0;
+int ssht_use_libsharp_fwd=1;
+int ssht_use_libsharp_inv=1;
 #endif
 
 //============================================================================
@@ -101,7 +101,10 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
     dcmplx **alm;
     ssht_flm2alm_c (flm, L0, L, spin, &alm, &alms);
     // run the SHT proper
-    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_ALM2MAP,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    if (spin<0)
+      for (int i=0; i<L*(2*L-1); ++i)
+        f[i]=conj(f[i]);
     //cleanup
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);
@@ -1899,10 +1902,13 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, const complex double 
     sharp_alm_info *alms;
     dcmplx **alm;
     ssht_flm2alm_c (flm, L0, L, spin, &alm, &alms);
-    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_ALM2MAP,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);
     sharp_destroy_geom_info(tinfo);
+    if (spin<0)
+      for (int i=0; i<(L+1)*(2*L); ++i)
+        f[i]=conj(f[i]);
     return;
     }
 #endif
@@ -3541,10 +3547,13 @@ void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
     sharp_alm_info *alms;
     dcmplx **alm;
     ssht_flm2alm_c (flm, 0, L, spin, &alm, &alms);
-    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_ALM2MAP,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);
     sharp_destroy_geom_info(tinfo);
+    if (spin<0)
+      for (int i=0; i<L*(2*L-1); ++i)
+        f[i]=conj(f[i]);
     return;
     }
 #endif
@@ -3832,7 +3841,15 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
     {
     sharp_geom_info *tinfo;
     sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
-    double * fr=(double *)f;
+    double * fr;
+    if (spin>=0)
+      fr=(double *)f;
+    else
+      {
+      fr=RALLOC(double,2*L*(2*L-1));
+      for (int i=0; i<L*(2*L-1); ++i)
+        { fr[2*i]=creal(f[i]); fr[2*i+1] = -cimag(f[i]); }
+      }
     double *frp[2];
     frp[0]=fr;
     frp[1]=fr+1;
@@ -3840,7 +3857,8 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
     sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
     dcmplx **alm;
     ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-    sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_MAP2ALM,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    if (spin<0) DEALLOC(fr);
     ssht_alm2flm_c (flm,0,L,spin,alm,alms);
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);
@@ -4188,10 +4206,13 @@ void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
     sharp_alm_info *alms;
     dcmplx **alm;
     ssht_flm2alm_c (flm, 0, L, spin, &alm, &alms);
-    sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_ALM2MAP,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);
     sharp_destroy_geom_info(tinfo);
+    if (spin<0)
+      for (int i=0; i<2*L*(2*L-1); ++i)
+        f[i]=conj(f[i]);
     return;
     }
 #endif
@@ -4455,7 +4476,15 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
     {
     sharp_geom_info *tinfo;
     sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
-    double * fr=(double *)f;
+    double * fr;
+    if (spin>=0)
+      fr=(double *)f;
+    else
+      {
+      fr=RALLOC(double,2*2*L*(2*L-1));
+      for (int i=0; i<2*L*(2*L-1); ++i)
+        { fr[2*i]=creal(f[i]); fr[2*i+1] = -cimag(f[i]); }
+      }
     double *frp[2];
     frp[0]=fr;
     frp[1]=fr+1;
@@ -4463,7 +4492,8 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
     sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
     dcmplx **alm;
     ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-    sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    sharp_execute(SHARP_MAP2ALM,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+    if (spin<0) DEALLOC(fr);
     ssht_alm2flm_c(flm,0,L,spin,alm,alms);
     DEALLOC2D(alm);
     sharp_destroy_alm_info(alms);

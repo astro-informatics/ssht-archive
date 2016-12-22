@@ -23,25 +23,38 @@ void ssht_flm2alm_c (const dcmplx *flm, int L0, int L, int spin,
   dcmplx ***alm, sharp_alm_info **ainfo)
   {
   sharp_make_triangular_alm_info(L-1,L-1,1,ainfo);
-
   ALLOC2D((*alm),dcmplx,2,(L*(L+1))/2);
   // rearrange a_lm into required format
   int l,m;
   double spinsign = (spin==0) ? 1. : -1.;
+  double spinfac = (spin&1) ? -1. : 1.;
   for (m=0; m<L; ++m)
     {
     double mfac=(m&1) ? -1.:1.;
     for (l=m; l<L; ++l)
       {
-      dcmplx v1=flm[l*l+l+m], v2=mfac*flm[l*l+l-m];
-      (*alm)[0][sharp_alm_index(*ainfo,l,m)]=spinsign*0.5*(v1+conj(v2));
-      (*alm)[1][sharp_alm_index(*ainfo,l,m)]=-spinsign*0.5*_Complex_I*(v1-conj(v2));
+      dcmplx v1=flm[l*l+l+m], v2=flm[l*l+l-m];
+      dcmplx pslm,mslm;
+      if (spin>=0)
+        {
+        pslm = v1;
+        mslm = spinfac*mfac*conj(v2);
+        }
+      else
+        {
+        pslm = spinfac*mfac*conj(v2);
+        mslm = v1;
+        }
+      dcmplx E=spinsign*0.5*(pslm+spinfac*mslm);
+      dcmplx B=-spinsign*0.5*_Complex_I*(pslm-spinfac*mslm);
+      (*alm)[0][sharp_alm_index(*ainfo,l,m)]=E;
+      (*alm)[1][sharp_alm_index(*ainfo,l,m)]=B;
       }
     }
   for (m=0; m<L0; ++m)
     for (l=m; l<L0; ++l)
       (*alm)[0][sharp_alm_index(*ainfo,l,m)]=
-      (*alm)[0][sharp_alm_index(*ainfo,l,m)]= 0.;
+      (*alm)[1][sharp_alm_index(*ainfo,l,m)]= 0.;
   }
 
 void ssht_alm2flm_c (dcmplx *flm, int L0, int L, int spin, dcmplx **alm,
@@ -49,15 +62,24 @@ void ssht_alm2flm_c (dcmplx *flm, int L0, int L, int spin, dcmplx **alm,
   {
   int l,m;
   double spinsign = (spin==0) ? 1. : -1.;
+  double spinfac = (spin&1) ? -1. : 1.;
   for (m=0; m<L; ++m)
     {
     double mfac=(m&1) ? -1:1;
     for (l=m; l<L; ++l)
       {
-      dcmplx v1=alm[0][sharp_alm_index(ainfo,l,m)],
-                     v2=alm[1][sharp_alm_index(ainfo,l,m)];
-      flm[l*l+l+m]=spinsign*(v1+_Complex_I*v2);
-      flm[l*l+l-m]=spinsign*(mfac*(conj(v1)+_Complex_I*conj(v2)));
+      dcmplx E=alm[0][sharp_alm_index(ainfo,l,m)],
+             B=alm[1][sharp_alm_index(ainfo,l,m)];
+      if (spin>=0)
+        {
+        flm[l*l+l+m]=spinsign*(E+_Complex_I*B);
+        flm[l*l+l-m]=spinsign*(mfac*(conj(E)+_Complex_I*conj(B)));
+        }
+      else
+        {
+        flm[l*l+l-m]=spinfac*mfac*conj(spinsign*(E+_Complex_I*B));
+        flm[l*l+l+m]=spinfac*conj(spinsign*(conj(E)+_Complex_I*conj(B)));
+        }
       }
     }
   for (m=0; m<L0; ++m)
@@ -159,6 +181,11 @@ void ssht_sharp_mw_forward_complex(dcmplx *flm, const dcmplx *f,
     for (m=0; m<nphi; ++m)
       tmp1[2*ith+1][m]=f[ith*nphi+m];
 
+  if (spin<0)
+    for (ith=0; ith<nth_hw; ++ith)
+      for (m=0; m<nphi; ++m)
+        tmp1[ith][m]=conj(tmp1[ith][m]);
+
   sharp_geom_info *tinfo;
   sharp_make_cc_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
   sharp_alm_info *alms;
@@ -169,7 +196,7 @@ void ssht_sharp_mw_forward_complex(dcmplx *flm, const dcmplx *f,
   frp[0]=fr;
   frp[1]=fr+1;
   ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+  sharp_execute(SHARP_MAP2ALM,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   ssht_alm2flm_c(flm,L0,L,spin,alm,alms);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
@@ -328,6 +355,11 @@ void ssht_sharp_mws_forward_complex(dcmplx *flm, const dcmplx *f, int L0, int L,
     for (m=0; m<nphi; ++m)
       tmp1[2*ith][m]=f[ith*nphi+m];
 
+  if (spin<0)
+    for (ith=0; ith<nth_hw; ++ith)
+      for (m=0; m<nphi; ++m)
+        tmp1[ith][m]=conj(tmp1[ith][m]);
+
   sharp_geom_info *tinfo;
   sharp_make_cc_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
   sharp_alm_info *alms;
@@ -338,7 +370,7 @@ void ssht_sharp_mws_forward_complex(dcmplx *flm, const dcmplx *f, int L0, int L,
   frp[1]=fr+1;
   dcmplx **alm;
   ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+  sharp_execute(SHARP_MAP2ALM,abs(spin),alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   ssht_alm2flm_c(flm,L0,L,spin,alm,alms);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);

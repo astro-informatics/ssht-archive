@@ -24,7 +24,7 @@
 
 #include <ssht.h>
 
-#define NREPEAT 5
+#define NREPEAT 1
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 double ran2_dp(int idum);
@@ -945,6 +945,7 @@ void ssht_test_gen_lb_flm_complex(complex double *flm, int L0, int L, int spin, 
   int i, i_lo;
 
   ssht_sampling_elm2ind(&i_lo, abs(spin), 0);
+  printf("%d\n",i_lo);
   for (i=0; i<MAX(i_lo,L0*L0); i++)
     flm[i] = 0.0;
   for (i=MAX(i_lo,L0*L0); i<L*L; i++)
