@@ -168,7 +168,7 @@ void ssht_sharp_mw_forward_complex(dcmplx *flm, const dcmplx *f,
   // loop over all m
 #pragma omp parallel
 {
-  dcmplx *tmp=fftw_alloc_complex(dcmplx,nth_mwfull);
+  dcmplx *tmp=fftw_alloc_complex(nth_mwfull);
 #pragma omp for
   for (int m=0; m<nm; ++m)
     {
