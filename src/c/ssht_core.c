@@ -31,8 +31,6 @@ typedef complex double dcmplx;
 #include "sharp.h"
 #include "sharp_geomhelpers.h"
 #include "ssht_sharp_utils.h"
-int ssht_use_libsharp_fwd=1;
-int ssht_use_libsharp_inv=1;
 #endif
 
 //============================================================================
@@ -87,7 +85,7 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
           int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     // describe the grid to libsharp
     sharp_geom_info *tinfo;
@@ -384,7 +382,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
 				       int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     // describe the grid to libsharp
     sharp_geom_info *tinfo;
@@ -890,7 +888,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
 				       int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     ssht_sharp_mw_forward_complex(flm, f, L0, L, spin);
     return;
@@ -1290,7 +1288,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
 					    int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     ssht_sharp_mw_forward_real(flm, f, L0, L);
     return;
@@ -1891,7 +1889,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, const complex double 
 				     int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_cc_geom_info (L+1, 2*L, 0., 2, 4*L, &tinfo);
@@ -2184,7 +2182,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *fl
 					  int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_cc_geom_info (L+1, 2*L, 0., 1, 2*L, &tinfo);
@@ -2556,7 +2554,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
 					  int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     ssht_sharp_mws_forward_complex(flm, f, L0, L, spin);
     return;
@@ -2958,7 +2956,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
 					       int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     ssht_sharp_mws_forward_real(flm, f, L0, L);
     return;
@@ -3536,7 +3534,7 @@ void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -3689,7 +3687,7 @@ void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
@@ -3837,7 +3835,7 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     sharp_geom_info *tinfo;
     sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -4014,7 +4012,7 @@ void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     sharp_geom_info *tinfo;
     sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
@@ -4195,7 +4193,7 @@ void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -4336,7 +4334,7 @@ void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_inv)
+  if (ssht_use_libsharp_inv())
     {
     sharp_geom_info *tinfo;
     sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
@@ -4472,7 +4470,7 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     sharp_geom_info *tinfo;
     sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -4639,7 +4637,7 @@ void ssht_core_dh_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
 #ifdef USE_LIBSHARP
-  if (ssht_use_libsharp_fwd)
+  if (ssht_use_libsharp_fwd())
     {
     sharp_geom_info *tinfo;
     sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);

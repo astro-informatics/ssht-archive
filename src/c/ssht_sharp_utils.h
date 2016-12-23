@@ -6,6 +6,9 @@
 #include "sharp_almhelpers.h"
 #include "sharp_geomhelpers.h"
 
+int ssht_use_libsharp_fwd(void);
+int ssht_use_libsharp_inv(void);
+
 void ssht_flm2alm_r (const complex double *flm, int L0, int L, double complex ***alm,
   sharp_alm_info **ainfo);
 void ssht_flm2alm_c (const complex double *flm, int L0, int L, int spin,
