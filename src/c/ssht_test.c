@@ -27,6 +27,14 @@
 #define NREPEAT 5
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#if 1
+#define GETTIME clock()
+#define TDIFF(a,b) (((b)-(a))/(double)CLOCKS_PER_SEC)
+#else
+#define GETTIME omp_get_wtime()
+#define TDIFF(a,b) ((b)-(a))
+#endif
+
 double ran2_dp(int idum);
 void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed);
 void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
@@ -56,7 +64,7 @@ int main(int argc, char *argv[]) {
   int i;
   double tmp;
 
-  clock_t time_start, time_end;
+  double time_start, time_end;
   double errors_mw[NREPEAT];
   double errors_mw_lb[NREPEAT];
   double errors_mw_pole[NREPEAT];
@@ -122,38 +130,6 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_orig)
   flm_syn = (complex double*)calloc(L*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
-  f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
-  f_mw_lb = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
-  f_mw_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
-  f_mw_lb_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
-  f_mw_pole = (complex double*)calloc((L-1)*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_pole)
-  f_mw_ss_pole = (complex double*)calloc((L-1)*(2*L), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_pole)
-  f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
-  f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_dh)
-  f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
-  f_mw_lb_real = (double*)calloc(L*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
-  f_mw_ss_real = (double*)calloc((L+1)*(2*L), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
-  f_mw_lb_ss_real = (double*)calloc((L+1)*(2*L), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
-  f_mw_real_pole = (double*)calloc((L-1)*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real_pole)
-  f_mw_ss_real_pole = (double*)calloc((L-1)*(2*L), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real_pole)
-  f_gl_real = (double*)calloc(L*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
-  f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_dh_real)
 
   // Write program name.
   printf("\n");
@@ -171,17 +147,20 @@ int main(int argc, char *argv[]) {
       printf("DH real test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_dh_real)
+      time_start = GETTIME;
       ssht_core_dh_inverse_sov_real(f_dh_real, flm_orig, L, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_dh_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_dh_forward_sov_real(flm_syn, f_dh_real, L, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_dh_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
+      free(f_dh_real);
 
       errors_dh_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -200,17 +179,20 @@ int main(int argc, char *argv[]) {
       printf("GL real test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_gl_real = (double*)calloc(L*(2*L-1), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
+      time_start = GETTIME;
       ssht_core_gl_inverse_sov_real(f_gl_real, flm_orig, L, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_gl_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_gl_forward_sov_real(flm_syn, f_gl_real, L, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_gl_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
+      free(f_gl_real);
 
       errors_gl_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -229,19 +211,22 @@ int main(int argc, char *argv[]) {
       printf("MW real test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+      time_start = GETTIME;
       ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L,
 					dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_real[irepeat] =
-	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L,
 					     dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_real[irepeat] =
-	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+	TDIFF(time_start,time_end);
+      free(f_mw_real);
 
       errors_mw_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -260,19 +245,22 @@ int main(int argc, char *argv[]) {
       printf("MW real (lower band-limit) test no. %d\n", irepeat);
 
       ssht_test_gen_lb_flm_real(flm_orig, L0, L, seed);
-      time_start = clock();
+      f_mw_lb_real = (double*)calloc(L*(2*L-1), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+      time_start = GETTIME;
       ssht_core_mw_lb_inverse_sov_sym_real(f_mw_lb_real, flm_orig, L0, L,
                     dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_lb_real[irepeat] =
-        (time_end - time_start) / (double)CLOCKS_PER_SEC;
+        TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_lb_forward_sov_conv_sym_real(flm_syn, f_mw_lb_real, L0, L,
                          dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_lb_real[irepeat] =
-        (time_end - time_start) / (double)CLOCKS_PER_SEC;
+        TDIFF(time_start,time_end);
+      free(f_mw_lb_real);
 
       errors_mw_lb_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -291,23 +279,26 @@ int main(int argc, char *argv[]) {
       printf("MW real pole test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_mw_real_pole = (double*)calloc((L-1)*(2*L-1), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real_pole)
+      time_start = GETTIME;
       ssht_core_mw_inverse_sov_sym_real_pole(f_mw_real_pole,
       					     &f_mw_real_sp,
       					     flm_orig, L,
       					     dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_real_pole[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_forward_sov_conv_sym_real_pole(flm_syn, f_mw_real_pole,
       						  f_mw_real_sp,
       						  L,
       						  dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_real_pole[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
+      free(f_mw_real_pole);
 
       errors_mw_real_pole[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -326,19 +317,22 @@ int main(int argc, char *argv[]) {
       printf("MW SS real test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_mw_ss_real = (double*)calloc((L+1)*(2*L), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
+      time_start = GETTIME;
       ssht_core_mw_inverse_sov_sym_ss_real(f_mw_ss_real, flm_orig, L,
       					   dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_ss_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_forward_sov_conv_sym_ss_real(flm_syn, f_mw_ss_real, L,
       						dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_ss_real[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
+      free(f_mw_ss_real);
 
       errors_mw_ss_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -357,19 +351,22 @@ int main(int argc, char *argv[]) {
       printf("MW SS real (lower band-limit) test no. %d\n", irepeat);
 
       ssht_test_gen_lb_flm_real(flm_orig, L0, L, seed);
-      time_start = clock();
+      f_mw_lb_ss_real = (double*)calloc((L+1)*(2*L), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
+      time_start = GETTIME;
       ssht_core_mw_lb_inverse_sov_sym_ss_real(f_mw_lb_ss_real, flm_orig, L0, L,
                            dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_lb_ss_real[irepeat] =
-        (time_end - time_start) / (double)CLOCKS_PER_SEC;
+        TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_lb_forward_sov_conv_sym_ss_real(flm_syn, f_mw_lb_ss_real, L0, L,
                             dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_lb_ss_real[irepeat] =
-        (time_end - time_start) / (double)CLOCKS_PER_SEC;
+        TDIFF(time_start,time_end);
+      free(f_mw_lb_ss_real);
 
       errors_mw_lb_ss_real[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -388,26 +385,29 @@ int main(int argc, char *argv[]) {
       printf("MW SS real pole test no. %d\n", irepeat);
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
-      time_start = clock();
+      f_mw_ss_real_pole = (double*)calloc((L-1)*(2*L), sizeof(double));
+      SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real_pole)
+      time_start = GETTIME;
       ssht_core_mw_inverse_sov_sym_ss_real_pole(f_mw_ss_real_pole,
       						&f_mw_ss_real_np,
       						&f_mw_ss_real_sp,
       						flm_orig, L,
       						dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_inverse_mw_ss_real_pole[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
 
-      time_start = clock();
+      time_start = GETTIME;
       ssht_core_mw_forward_sov_conv_sym_ss_real_pole(flm_syn,
       						     f_mw_ss_real_pole,
       						     f_mw_ss_real_np,
       						     f_mw_ss_real_sp,
       						     L,
       						     dl_method, verbosity);
-      time_end = clock();
+      time_end = GETTIME;
       durations_forward_mw_ss_real_pole[irepeat] =
-      	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      	TDIFF(time_start,time_end);
+      free(f_mw_ss_real_pole);
 
       errors_mw_ss_real_pole[irepeat] = 0.0;
       for (i = 0; i < L*L; i++)
@@ -428,15 +428,18 @@ int main(int argc, char *argv[]) {
     printf("DH test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_dh)
+    time_start = GETTIME;
     ssht_core_dh_inverse_sov(f_dh, flm_orig, L, spin, verbosity);
-    time_end = clock();
-    durations_inverse_dh[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_dh[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_dh_forward_sov(flm_syn, f_dh, L, spin, verbosity);
-    time_end = clock();
-    durations_forward_dh[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_dh[irepeat] = TDIFF(time_start,time_end);
+    free(f_dh);
 
     errors_dh[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -455,15 +458,18 @@ int main(int argc, char *argv[]) {
     printf("GL test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
+    time_start = GETTIME;
     ssht_core_gl_inverse_sov(f_gl, flm_orig, L, spin, verbosity);
-    time_end = clock();
-    durations_inverse_gl[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_gl[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_gl_forward_sov(flm_syn, f_gl, L, spin, verbosity);
-    time_end = clock();
-    durations_forward_gl[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_gl[irepeat] = TDIFF(time_start,time_end);
+    free(f_gl);
 
     errors_gl[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -482,15 +488,18 @@ int main(int argc, char *argv[]) {
     printf("MW test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
+    time_start = GETTIME;
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, dl_method, verbosity);
-    time_end = clock();
-    durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_mw[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, dl_method, verbosity);
-    time_end = clock();
-    durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_mw[irepeat] = TDIFF(time_start,time_end);
+    free(f_mw);
 
     errors_mw[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -509,16 +518,18 @@ int main(int argc, char *argv[]) {
     printf("MW lower band-limit test no. %d\n", irepeat);
 
     ssht_test_gen_lb_flm_complex(flm_orig, L0, L, spin, seed);
-
-    time_start = clock();
+    f_mw_lb = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
+    time_start = GETTIME;
     ssht_core_mw_lb_inverse_sov_sym(f_mw_lb, flm_orig, L0, L, spin, dl_method, verbosity);
-    time_end = clock();
-    durations_inverse_mw_lb[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_mw_lb[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_lb_forward_sov_conv_sym(flm_syn, f_mw_lb, L0, L, spin, dl_method, verbosity);
-    time_end = clock();
-    durations_forward_mw_lb[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_mw_lb[irepeat] = TDIFF(time_start,time_end);
+    free(f_mw_lb);
 
     errors_mw_lb[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -537,21 +548,24 @@ int main(int argc, char *argv[]) {
     printf("MW pole test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_mw_pole = (complex double*)calloc((L-1)*(2*L-1), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_pole)
+    time_start = GETTIME;
     ssht_core_mw_inverse_sov_sym_pole(f_mw_pole, &f_mw_sp, &phi_sp,
     				      flm_orig, L, spin,
     				      dl_method, verbosity);
-    time_end = clock();
+    time_end = GETTIME;
     durations_inverse_mw_pole[irepeat] =
-      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+      TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_forward_sov_conv_sym_pole(flm_syn, f_mw_pole, f_mw_sp, phi_sp,
     					   L, spin,
     					   dl_method, verbosity);
-    time_end = clock();
+    time_end = GETTIME;
     durations_forward_mw_pole[irepeat] =
-      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+      TDIFF(time_start,time_end);
+    free(f_mw_pole);
 
     errors_mw_pole[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -570,18 +584,21 @@ int main(int argc, char *argv[]) {
     printf("MW SS test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_mw_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
+    time_start = GETTIME;
     ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin,
     				    dl_method, verbosity);
     //ssht_core_mwdirect_inverse_ss(f_mw_ss, flm_orig, L, spin, verbosity);
-    time_end = clock();
-    durations_inverse_mw_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_mw_ss[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_forward_sov_conv_sym_ss(flm_syn, f_mw_ss, L, spin,
     					 dl_method, verbosity);
-    time_end = clock();
-    durations_forward_mw_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_mw_ss[irepeat] = TDIFF(time_start,time_end);
+    free(f_mw_ss);
 
     errors_mw_ss[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -600,18 +617,21 @@ int main(int argc, char *argv[]) {
     printf("MW SS (lower band-limit) test no. %d\n", irepeat);
 
     ssht_test_gen_lb_flm_complex(flm_orig, L0, L, spin, seed);
-    time_start = clock();
+    f_mw_lb_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_lb_ss)
+    time_start = GETTIME;
     ssht_core_mw_lb_inverse_sov_sym_ss(f_mw_lb_ss, flm_orig, L0, L, spin,
                         dl_method, verbosity);
 
-    time_end = clock();
-    durations_inverse_mw_lb_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_inverse_mw_lb_ss[irepeat] = TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_lb_forward_sov_conv_sym_ss(flm_syn, f_mw_lb_ss, L0, L, spin,
                          dl_method, verbosity);
-    time_end = clock();
-    durations_forward_mw_lb_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+    time_end = GETTIME;
+    durations_forward_mw_lb_ss[irepeat] = TDIFF(time_start,time_end);
+    free(f_mw_lb_ss);
 
     errors_mw_lb_ss[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -630,25 +650,28 @@ int main(int argc, char *argv[]) {
     printf("MW SS pole test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
-    time_start = clock();
+    f_mw_ss_pole = (complex double*)calloc((L-1)*(2*L), sizeof(complex double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_pole)
+    time_start = GETTIME;
     ssht_core_mw_inverse_sov_sym_ss_pole(f_mw_ss_pole,
     					 &f_mw_ss_np, &phi_np,
     					 &f_mw_ss_sp, &phi_sp,
     					 flm_orig, L, spin,
     					 dl_method, verbosity);
-    time_end = clock();
+    time_end = GETTIME;
     durations_inverse_mw_ss_pole[irepeat] =
-      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+      TDIFF(time_start,time_end);
 
-    time_start = clock();
+    time_start = GETTIME;
     ssht_core_mw_forward_sov_conv_sym_ss_pole(flm_syn, f_mw_ss_pole,
     					      f_mw_ss_np, phi_np,
     					      f_mw_ss_sp, phi_sp,
     					      L, spin,
     					      dl_method, verbosity);
-    time_end = clock();
+    time_end = GETTIME;
     durations_forward_mw_ss_pole[irepeat] =
-      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+      TDIFF(time_start,time_end);
+    free(f_mw_ss_pole);
 
     errors_mw_ss_pole[irepeat] = 0.0;
     for (i = 0; i < L*L; i++)
@@ -808,22 +831,6 @@ int main(int argc, char *argv[]) {
   // Free memory.
   free(flm_orig);
   free(flm_syn);
-  free(f_mw);
-  free(f_mw_lb);
-  free(f_mw_ss);
-  free(f_mw_lb_ss);
-  free(f_mw_real);
-  free(f_mw_lb_real);
-  free(f_mw_ss_real);
-  free(f_mw_lb_ss_real);
-  free(f_mw_pole);
-  free(f_mw_ss_pole);
-  free(f_mw_real_pole);
-  free(f_mw_ss_real_pole);
-  free(f_gl);
-  free(f_gl_real);
-  free(f_dh);
-  free(f_dh_real);
 
   return 0;
 }
