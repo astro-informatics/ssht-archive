@@ -67,18 +67,8 @@ void ssht_flm2alm_c (const dcmplx *flm, int L0, int L, int spin,
     double mfac=(m&1) ? -1.:1.;
     for (int l=m; l<L; ++l)
       {
-      dcmplx v1=flm[l*l+l+m], v2=flm[l*l+l-m];
-      dcmplx pslm,mslm;
-      if (spin>=0)
-        {
-        pslm = v1;
-        mslm = spinfac*mfac*conj(v2);
-        }
-      else
-        {
-        pslm = spinfac*mfac*conj(v2);
-        mslm = v1;
-        }
+      dcmplx pslm=flm[l*l+l+m], mslm=spinfac*mfac*conj(flm[l*l+l-m]);
+      if (spin<0) SWAP(pslm,mslm,dcmplx);
       dcmplx E=spinsign*0.5*(pslm+spinfac*mslm);
       dcmplx B=-spinsign*0.5*_Complex_I*(pslm-spinfac*mslm);
       (*alm)[0][sharp_alm_index(*ainfo,l,m)]=E;
