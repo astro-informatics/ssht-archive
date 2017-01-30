@@ -1,0 +1,59 @@
+Usage
+=====
+
+To use libsharp as a back end for SSHT, you need to adjust a section in SSHT's
+main makefile:
+
+USE_LIBSHARP=no
+SHARP_INCDIR=
+SHARP_LIBDIR=
+ifeq ($(USE_LIBSHARP),yes)
+OPT+= -I $(SHARP_INCDIR) -DUSE_LIBSHARP
+LDFLAGS+= -L $(SHARP_LIBDIR) -lsharp -lfftpack -lc_utils
+SSHTOBJS+= $(SSHTOBJ)/ssht_sharp_utils.o
+SSHTHEADERS+= ssht_sharp_utils.h
+endif
+
+First you need to change
+  USE_LIBSHARP=no
+to
+  USE_LIBSHARP=yes
+
+Also SHARP_INCDIR must be set to the file system location that contains
+libsharp's header files (like sharp.h, ls_fft.h, c_utils.h ...), and
+SHARP_LIBDIR must be set to the file system location that contains libsharp.a,
+libfftpack.a and libc_utils.a.
+
+After these changes, do a "make clean" and "make". SSHT should now be built with
+optional libsharp support.
+
+By default, SSHT will still use its built in SHT implementation. It can be
+instructed to use libsharp via the environment variable SSHT_USE_LIBSHARP.
+If this variable is set to "FWD" or "INV", libsharp will be called to compute
+the forward and inverse SHTs, respectively. If set to "BOTH", it will compute
+both directions.
+The FWD and INV options are mainly useful for testing purposes. Invoking
+"ssht_test" with these enabled allows to double-check that libsharp actually
+computes equivalent SHTs to SSHT.
+
+
+Advantages of the libsharp back end
+-----------------------------------
+- for large band limits, SHTs are very much quicker with the libsharp back end
+  (factors 20 to 50 are typical for L=4096). Break even is around L=64.
+- the errors for SHTs on the GL and DH grids are much smaller with libsharp than
+  with SSHT. Also, the libsharp implementation does not break down for large
+  band limits.
+- If libsharp and SSHT were compiled with OpenMP support, SHT performance will
+  scale with the available number of CPUs.
+
+Drawbacks of the libsharp back end
+----------------------------------
+- for the MW type grids, the errors produced by libsharp are slighly higher than
+  those of SSHT.
+
+NOTE
+----
+
+The libsharp back end currently does not support adjoint transforms. These are
+still carried out exclusively by SSHT.
