@@ -1,18 +1,12 @@
 Usage
 =====
 
-To use libsharp as a back end for SSHT, you need to adjust a section in SSHT's
-main makefile:
+To use libsharp (https://github.com/dagss/libsharp) as a back end for SSHT,
+you need to adjust a section in SSHT's main makefile:
 
 USE_LIBSHARP=no
 SHARP_INCDIR=
 SHARP_LIBDIR=
-ifeq ($(USE_LIBSHARP),yes)
-OPT+= -I $(SHARP_INCDIR) -DUSE_LIBSHARP
-LDFLAGS+= -L $(SHARP_LIBDIR) -lsharp -lfftpack -lc_utils
-SSHTOBJS+= $(SSHTOBJ)/ssht_sharp_utils.o
-SSHTHEADERS+= ssht_sharp_utils.h
-endif
 
 First you need to change
   USE_LIBSHARP=no
