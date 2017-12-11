@@ -7,7 +7,7 @@ then run:
 python setup.py build_ext --inplace
 ```
 
-For user wide install of the package use the following:
+For user-wide install of the package use the following:
 ```
 python setup.py install --user
 ```
