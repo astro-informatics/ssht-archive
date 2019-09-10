@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
@@ -30,12 +30,13 @@ setup(
     classifiers=['Programming Language :: Python :: 2.7'],
     name = "pyssht",
     version = "2.0",
-    prefix='.',
+    package_dir = {"": "src/python"},
+    packages = ['pyssht'],
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize([Extension(
-        "src/python/pyssht",
+        "pyssht.pyssht",
         package_dir=['src'],
-        sources=["src/python/pyssht.pyx"],
+        sources=["src/python/pyssht/pyssht.pyx"],
         include_dirs=include_dirs,
         libraries=["ssht", "fftw3"],
         extra_link_args=extra_link_args,
